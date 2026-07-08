@@ -142,7 +142,7 @@ function rivalPurse() {
 function resetToSetup() {
   clearTimeout(aucTimer);
   clearInterval(driftTimer);
-  PAUSED = false; SPEED = 1; resumeFn = null;
+  PAUSED = false; SPEED = 1; pendingStep = null;
   showScreen("setup");
 }
 
@@ -156,39 +156,38 @@ let composing = false;   // true while the user is dialing a custom amount
 // speed-aware, pausable scheduler for the auction loop
 let PAUSED = false;
 let SPEED = 1;              // 1x, 2x, 4x
-let resumeFn = null;       // step to replay when unpaused
+let pendingStep = null;    // {fn, ms} — the next queued step, held while paused, replayed on resume
 function schedule(fn, ms) {
   clearTimeout(aucTimer);
-  if (PAUSED) { resumeFn = () => schedule(fn, ms); return; }
+  pendingStep = { fn, ms };            // remember what's queued so pause/resume can replay it
+  if (PAUSED) return;                  // held: resumeAuction() re-schedules pendingStep
   aucTimer = setTimeout(() => {
-    if (PAUSED) { resumeFn = fn; return; }
+    if (PAUSED) return;                // safety net; pause also clears the timer
+    pendingStep = null;                // this step is now running; it will queue the next
     fn();
   }, Math.max(60, ms / SPEED));
 }
+function setPauseUI(paused) {
+  $("pauseBtn").classList.toggle("paused", paused);
+  $("pauseIco").innerHTML = paused ? "&#9654;" : "&#10073;&#10073;";
+  $("pauseTxt").textContent = paused ? "Resume" : "Pause";
+}
 function pauseAuction() {
+  if (PAUSED) return;
   PAUSED = true;
-  clearTimeout(aucTimer);
-  $("pauseBtn").classList.add("paused");
-  $("pauseIco").innerHTML = "&#9654;";
-  $("pauseTxt").textContent = "Resume";
+  clearTimeout(aucTimer);              // pendingStep still holds the queued step for resume
+  setPauseUI(true);
   $("bidStatus").innerHTML = "Auction paused. Take your time.";
 }
 function resumeAuction() {
   if (!PAUSED) return;
   PAUSED = false;
-  $("pauseBtn").classList.remove("paused");
-  $("pauseIco").innerHTML = "&#10073;&#10073;";
-  $("pauseTxt").textContent = "Pause";
-  const f = resumeFn; resumeFn = null;
-  if (f) f();
+  setPauseUI(false);
+  if (pendingStep) { const s = pendingStep; schedule(s.fn, s.ms); }  // pick the auction back up
 }
 function resumeIfPaused() {
-  if (PAUSED) {
-    PAUSED = false; resumeFn = null;
-    $("pauseBtn").classList.remove("paused");
-    $("pauseIco").innerHTML = "&#10073;&#10073;";
-    $("pauseTxt").textContent = "Pause";
-  }
+  // clear the paused flag without replaying — the caller schedules the next step itself
+  if (PAUSED) { PAUSED = false; setPauseUI(false); }
 }
 
 $("startAuctionBtn").addEventListener("click", () => {
@@ -1321,11 +1320,9 @@ $("speedBtn").addEventListener("click", () => {
 $("restartBtn").addEventListener("click", () => {
   if (!confirm("Restart the auction with a fresh pool? Your current squad is lost.")) return;
   clearTimeout(aucTimer);
-  PAUSED = false; SPEED = 1; resumeFn = null;
+  PAUSED = false; SPEED = 1; pendingStep = null;
   $("speedTxt").innerHTML = "1&times;";
-  $("pauseBtn").classList.remove("paused");
-  $("pauseIco").innerHTML = "&#10073;&#10073;";
-  $("pauseTxt").textContent = "Pause";
+  setPauseUI(false);
   G.user.squad = [];
   G.user.purse = G.user.purse0;
   G.rivals = RIVALS.map((r) => ({ ...r, purse: rivalPurse(), core: [], buys: [], maxBid: 0 }));
