@@ -261,7 +261,6 @@
       <div class="tool-group">
         <button class="tool-btn tool-ghost" id="browseSetBtn">View this set</button>
         <button class="tool-btn tool-accent" id="quickAucBtn">&#9889; Quick auction</button>
-        <button class="tool-btn" id="finishAucBtn" title="End the auction now">&#10003; Finish</button>
       </div>
     </div>
 
@@ -302,7 +301,7 @@
               <span class="step-amt mono" id="bidAmt">&#8377;2.20cr</span>
               <button class="step-btn" id="bidPlus" aria-label="Raise your raise">+</button>
             </div>
-            <button class="btn btn-solid btn-bid" id="bidBtn"><span>Submit raise</span></button>
+            <button class="btn btn-solid btn-bid" id="bidBtn"><span>Submit</span></button>
             <button class="btn btn-ghost" id="passBtn"><span>Sit out</span></button>
           </div>
         </div>
@@ -368,7 +367,11 @@
       </div>
     </div>
     <div class="next-match" id="nextMatchBanner" hidden></div>
-    <div class="season-grid">
+    <div class="season-tabs" id="seasonTabs">
+      <button class="squad-tab active" data-stab="fixtures">Fixtures</button>
+      <button class="squad-tab" data-stab="league">League</button>
+    </div>
+    <div class="season-grid" id="seasonGrid" data-show="fixtures">
       <div class="matches" id="matchStack"></div>
       <aside class="table-panel bez"><div class="bez-core">
         <p class="pool-title">Standings</p>

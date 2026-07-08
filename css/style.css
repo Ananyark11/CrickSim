@@ -563,8 +563,8 @@ ul { list-style: none; }
   .table-panel { position: static; }
   .how-grid { grid-template-columns: 1fr; }
 }
-/* squad tabs: desktop shows both columns, mobile toggles between them */
-.squad-tabs { display: none; }
+/* squad + season tabs: desktop shows both columns, mobile toggles between them */
+.squad-tabs, .season-tabs { display: none; }
 .ptable-scroll { overflow-x: auto; scrollbar-width: thin; }
 
 @media (max-width: 640px) {
@@ -598,6 +598,11 @@ ul { list-style: none; }
   #squadGrid[data-show="pool"] .xi-panel { display: none; }
   #squadGrid[data-show="xi"] .squad-pool { display: none; }
   .pool-list { max-height: none; }
+
+  /* Fixtures ⇄ League tab toggle — one panel at a time, full width */
+  .season-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.1rem; }
+  #seasonGrid[data-show="fixtures"] .table-panel { display: none; }
+  #seasonGrid[data-show="league"] .matches { display: none; }
 }
 
 /* ============================================================

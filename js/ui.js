@@ -198,8 +198,11 @@ $("startAuctionBtn").addEventListener("click", () => {
   startPitchDrift();
   showCatGate(0, true);   // gate the first category behind a Start click
 });
+// gate overlay mode: "gate" before a category, "complete" when the auction is over
+let aucGateMode = "gate";
 // the start-gate overlay, reused before every category
 function showCatGate(s, first) {
+  aucGateMode = "gate";
   G.gateTarget = s;
   const setName = G.sets[s].name;
   const lots = G.setRanges[s].end - G.setRanges[s].start;
@@ -213,8 +216,21 @@ function showCatGate(s, first) {
 }
 $("aucBeginBtn").addEventListener("click", () => {
   $("aucBegin").hidden = true;
+  if (aucGateMode === "complete") { endAuction(); return; }
   beginSet(G.gateTarget != null ? G.gateTarget : 0);
 });
+// last category done — celebrate the close and send the user to pick their XI
+function showAuctionComplete() {
+  G.setRanges[G.curSet].state = "done";
+  updateSetUI();
+  aucGateMode = "complete";
+  const n = G.user.squad.length;
+  $("aucBeginEyebrow").textContent = "That's the hammer";
+  $("aucBeginTitle").textContent = "Auction complete.";
+  $("aucBeginNote").innerHTML = `Every lot is gone. You signed <b>${n}</b> player${n !== 1 ? "s" : ""}${n < SQUAD_CAP ? ` — we'll round your squad to fifteen with uncapped reserves` : ""}. Now the real decision: pick the eleven who take the field.`;
+  $("aucBeginLabel").textContent = "Select your XI";
+  $("aucBegin").hidden = false;
+}
 function beginSet(s) {
   G.curSet = s;
   G.setRanges[s].state = "live";
@@ -227,7 +243,7 @@ function finishCurrentCategory() {
   G.setRanges[G.curSet].state = "done";
   const next = nextPendingSet(G.curSet);
   if (next >= 0) { updateSetUI(); showCatGate(next); }
-  else endAuction();
+  else showAuctionComplete();
 }
 
 function renderSetDots() {
@@ -377,10 +393,7 @@ function aiTurn() {
       if (onceStage === 0) { onceStage = 1; renderBidState("No takers&hellip; going once."); schedule(aiTurn, 1200); return; }
       if (onceStage === 1) { onceStage = 2; renderBidState("Going twice&hellip;"); schedule(aiTurn, 1100); return; }
       onceStage = 0;
-      b.sold = true;
-      log(`<b>${b.card.n}</b> goes UNSOLD.`, "");
-      stamp("UNSOLD", false);
-      schedule(nextLot, 1200);
+      concludeSale();   // routes through sellLot() so the lot is marked sold (no re-loop)
       return;
     }
     if (onceStage === 0) { onceStage = 1; renderBidState(`Going once at <b>${fmtMoney(b.price)}</b>&hellip;`); beep(520, 0.05, "sine", 0.03); schedule(aiTurn, 1250); return; }
@@ -508,7 +521,7 @@ function endAuction() {
   enforceUniqueSquads();
   if (added.length)
     log(`Auction closed. ${added.length} uncapped reserve${added.length > 1 ? "s" : ""} complete your fifteen.`);
-  setTimeout(() => { initSquadScreen(); showScreen("squad"); }, 1000);
+  setTimeout(() => { initSquadScreen(); showScreen("squad"); }, 250);
 }
 
 // ---------- squad / XI ----------
@@ -549,6 +562,7 @@ function mobileTab(name) {
 }
 
 let dragSrc = null; // {card} from pool, or {slot:i} from a filled slot
+let touchDragging = false; // true mid touch-drag, so the tap handlers stand down
 // place a card into slot i (bumping any occupant back to the pool); enforce overseas cap
 function placeInSlot(i, card) {
   const j = xiMap.indexOf(card);
@@ -557,6 +571,73 @@ function placeInSlot(i, card) {
   if (card.c !== "IN" && prospectiveOvs > OVERSEAS_XI_CAP) { flashChecks(); return false; }
   xiMap[i] = card;
   return true;
+}
+// apply a drop of dragSrc onto slot i (shared by mouse DnD and touch DnD)
+function performXIDrop(i) {
+  if (!dragSrc) return;
+  if (dragSrc.slot != null) {                 // slot -> slot: swap
+    const j = dragSrc.slot;
+    const tmp = xiMap[i]; xiMap[i] = xiMap[j]; xiMap[j] = tmp;
+  } else if (dragSrc.card) {                   // pool -> slot: place (may bump occupant to pool)
+    placeInSlot(i, dragSrc.card);
+  }
+  dragSrc = null; selCard = null;
+  renderPool(); renderSlots(); renderChecks();
+}
+function slotFromPoint(x, y) {
+  const e = document.elementFromPoint(x, y);
+  return e ? e.closest(".xi-slot") : null;
+}
+// touch-based drag: native HTML5 DnD doesn't fire on touchscreens, so we roll our
+// own with a follow-the-finger ghost. `getSrc()` returns the dragSrc descriptor.
+function attachTouchDrag(node, getSrc) {
+  node.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    const t0 = e.touches[0], sx = t0.clientX, sy = t0.clientY;
+    let started = false, ghost = null, gw = 0, hot = null;
+    const cleanup = () => {
+      if (ghost) { ghost.remove(); ghost = null; }
+      if (hot) { hot.classList.remove("drop-hot"); hot = null; }
+      node.classList.remove("dragging");
+      node.removeEventListener("touchmove", move);
+      node.removeEventListener("touchend", end);
+      node.removeEventListener("touchcancel", end);
+    };
+    const move = (ev) => {
+      const t = ev.touches[0];
+      if (!started) {
+        if (Math.hypot(t.clientX - sx, t.clientY - sy) < 10) return;   // still a tap
+        const src = getSrc();
+        if (!src) { cleanup(); return; }
+        dragSrc = src; started = true; touchDragging = true;
+        node.classList.add("dragging");
+        const r = node.getBoundingClientRect(); gw = r.width;
+        ghost = node.cloneNode(true);
+        ghost.style.cssText = `position:fixed;left:0;top:0;width:${gw}px;margin:0;pointer-events:none;` +
+          `z-index:999;opacity:0.92;box-shadow:0 18px 40px rgba(0,0,0,0.5);`;
+        document.body.appendChild(ghost);
+      }
+      ev.preventDefault();   // hold the page still while dragging
+      ghost.style.transform = `translate(${t.clientX - gw / 2}px, ${t.clientY - 24}px) scale(0.97)`;
+      const slot = slotFromPoint(t.clientX, t.clientY);
+      if (hot && hot !== slot) hot.classList.remove("drop-hot");
+      if (slot) slot.classList.add("drop-hot");
+      hot = slot;
+    };
+    const end = (ev) => {
+      if (started) {
+        ev.preventDefault();   // suppress the synthetic click that follows a drag
+        const t = ev.changedTouches && ev.changedTouches[0];
+        const slot = t ? slotFromPoint(t.clientX, t.clientY) : null;
+        if (slot && slot.dataset.slot != null) performXIDrop(+slot.dataset.slot);
+        setTimeout(() => { touchDragging = false; }, 60);
+      }
+      cleanup();
+    };
+    node.addEventListener("touchmove", move, { passive: false });
+    node.addEventListener("touchend", end, { passive: false });
+    node.addEventListener("touchcancel", end, { passive: false });
+  }, { passive: true });
 }
 function subBarsHTML(c) {
   return ROLE_INFO[c.r].subs.map((label, i) => `
@@ -613,7 +694,9 @@ function renderSlots() {
       <button class="slot-x" title="Remove">✕</button>` : `
       <span class="slot-pos">${slot.pos}</span>
       <span class="slot-sub">${slot.accepts.map((r) => ROLE_INFO[r].label).join(" / ")}</span>`);
+    d.dataset.slot = i;
     d.addEventListener("click", (ev) => {
+      if (touchDragging) return;   // a touch-drag just finished; ignore the trailing tap
       if (ev.target.classList.contains("slot-x")) { xiMap[i] = null; renderPool(); renderSlots(); renderChecks(); return; }
       if (selCard && !xiMap[i]) {
         if (!placeInSlot(i, selCard)) return;
@@ -627,21 +710,14 @@ function renderSlots() {
       d.draggable = true;
       d.addEventListener("dragstart", (e) => { dragSrc = { slot: i }; e.dataTransfer.effectAllowed = "move"; d.classList.add("dragging"); });
       d.addEventListener("dragend", () => d.classList.remove("dragging"));
+      attachTouchDrag(d, () => (xiMap[i] ? { slot: i } : null));   // touch: drag to reorder/swap
     }
     d.addEventListener("dragover", (e) => { if (dragSrc) { e.preventDefault(); d.classList.add("drop-hot"); } });
     d.addEventListener("dragleave", () => d.classList.remove("drop-hot"));
     d.addEventListener("drop", (e) => {
       e.preventDefault();
       d.classList.remove("drop-hot");
-      if (!dragSrc) return;
-      if (dragSrc.slot != null) {                 // slot -> slot: swap
-        const j = dragSrc.slot;
-        const tmp = xiMap[i]; xiMap[i] = xiMap[j]; xiMap[j] = tmp;
-      } else if (dragSrc.card) {                  // pool -> slot: place (may bump occupant to pool)
-        placeInSlot(i, dragSrc.card);
-      }
-      dragSrc = null; selCard = null;
-      renderPool(); renderSlots(); renderChecks();
+      performXIDrop(i);
     });
     wrap.appendChild(d);
   });
@@ -734,10 +810,20 @@ function autoPickXI() {
   renderPool(); renderSlots(); renderChecks();
 }
 
+// mobile Fixtures ⇄ League tab toggle (desktop shows both panels)
+$("seasonTabs").addEventListener("click", (e) => {
+  const t = e.target.closest(".squad-tab");
+  if (!t) return;
+  $("seasonGrid").dataset.show = t.dataset.stab;
+  $("seasonTabs").querySelectorAll(".squad-tab").forEach((x) => x.classList.toggle("active", x === t));
+});
+
 $("startSeasonBtn").addEventListener("click", () => {
   G.user.xi = buildEffectiveXI(xiMap);   // apply out-of-position penalties for the sim
   buildSeason();
   $("matchStack").innerHTML = "";
+  $("seasonGrid").dataset.show = "fixtures";   // mobile: start on the Fixtures tab
+  $("seasonTabs").querySelectorAll(".squad-tab").forEach((x) => x.classList.toggle("active", x.dataset.stab === "fixtures"));
   renderSeasonHead();
   renderTable();
   $("nextMatchBtn").querySelector("span").textContent = "Play match 1";
@@ -1256,7 +1342,7 @@ $("skipConfirmBtn").addEventListener("click", () => {
   log(`You skip the rest of the <b>${fromName}</b> set. ${n} player${n !== 1 ? "s" : ""} quick-simmed to the field.`, "log-me");
   const next = nextPendingSet(G.curSet);
   if (next >= 0) { updateSetUI(); showCatGate(next); }
-  else { endAuction(); }
+  else { showAuctionComplete(); }
 });
 
 // Prev category: read-only auction floor of the finished categories
@@ -1280,17 +1366,6 @@ function renderFloor(doneSets) {
         </div>`).join("")}
     </div>`).join("");
 }
-
-$("finishAucBtn").addEventListener("click", () => {
-  const rem = pendingLotCount();
-  if (rem && !confirm(`Finish the auction now? ${rem} remaining player${rem > 1 ? "s go" : " goes"} to the AI franchises.`)) return;
-  clearTimeout(aucTimer);
-  if (G.bid && !G.bid.sold) G.bid.sold = true;
-  const n = assignRemainingToRivals();
-  renderRivalsRail();
-  log(`Auction finished. ${n} remaining lot${n !== 1 ? "s" : ""} went to the AI franchises.`, "log-me");
-  endAuction();
-});
 
 $("browseSetBtn").addEventListener("click", () => {
   const set = G.sets[currentSetIndex()];
