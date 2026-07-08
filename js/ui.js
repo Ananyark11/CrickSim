@@ -45,6 +45,16 @@ $("toTopBtn").addEventListener("click", () => {
   if (top) top.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
   else window.scrollTo(0, 0);
 });
+
+// Guard against losing an in-progress game (auction / squad selection / season)
+// to an accidental refresh, back-button, or tab close. The browser shows its own
+// "Leave site?" prompt; we only arm it while a game is actually underway.
+window.addEventListener("beforeunload", (e) => {
+  if (["auction", "squad", "season", "scorecard"].includes(activeScreen)) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
 $("modeAI").addEventListener("click", () => resetToSetup());
 
 // ---------- landing marquee ----------
