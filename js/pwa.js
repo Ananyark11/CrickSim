@@ -3,6 +3,18 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(() => { /* offline / unsupported */ });
   });
+  // When a NEW service worker (a fresh deploy) takes control of a page that
+  // already had one, reload once so the new HTML and JS/CSS load together —
+  // otherwise the page keeps running the old cached assets until manual refresh.
+  // Guard on an existing controller so a first-ever visit doesn't reload.
+  if (navigator.serviceWorker.controller) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  }
 }
 
 let deferredPrompt = null;

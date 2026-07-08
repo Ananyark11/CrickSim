@@ -38,7 +38,7 @@ const ROLE_INFO = {
 const PURSE_OPTIONS = [
   { label: "₹50cr", v: 5000, hint: "Brutal. Every crore is a knife fight." },
   { label: "₹75cr", v: 7500, hint: "Tight. You can afford two stars, not five." },
-  { label: "₹100cr", v: 10000, hint: "The classic IPL purse. Recommended." },
+  { label: "₹100cr", v: 10000, hint: "The classic league purse. Recommended." },
   { label: "₹125cr", v: 12500, hint: "Comfortable. The rivals will still fight you." },
   { label: "Unlimited", v: Infinity, hint: "Sandbox mode. You always win the bid — the simulation still judges you honestly." },
 ];

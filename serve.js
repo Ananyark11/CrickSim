@@ -22,8 +22,10 @@ http
   .createServer((req, res) => {
     let urlPath = decodeURIComponent(req.url.split("?")[0]);
     if (urlPath === "/") urlPath = "/index.html";
-    const file = path.join(ROOT, path.normalize(urlPath).replace(/^([.][.][\\/])+/, ""));
+    let file = path.join(ROOT, path.normalize(urlPath).replace(/^([.][.][\\/])+/, ""));
     if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
+    // Emulate Vercel cleanUrls: /terms -> /terms.html when the extensionless file is missing
+    if (!path.extname(file) && !fs.existsSync(file) && fs.existsSync(file + ".html")) file += ".html";
     fs.readFile(file, (err, data) => {
       if (err) { res.writeHead(404); return res.end("Not found"); }
       res.writeHead(200, {

@@ -1,6 +1,6 @@
 # CrickSim
 
-Found your own IPL-style franchise, win a live auction against 9 AI rivals, build your
+Found your own T20-franchise, win a live auction against 9 AI rivals, build your
 XI from player-seasons spanning 2010-2026, then simulate a full campaign and chase the
 season no team has ever had: a perfect **16-0**.
 

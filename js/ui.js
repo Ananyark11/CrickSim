@@ -40,6 +40,11 @@ document.querySelectorAll("[data-nav]").forEach((b) =>
   })
 );
 $("howBtn").addEventListener("click", () => $("how").scrollIntoView({ behavior: "smooth" }));
+$("toTopBtn").addEventListener("click", () => {
+  const top = document.querySelector(".hero") || $("screen-landing");
+  if (top) top.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  else window.scrollTo(0, 0);
+});
 $("modeAI").addEventListener("click", () => resetToSetup());
 
 // ---------- landing marquee ----------
@@ -63,7 +68,7 @@ function purseFromSlider(v) {
 function purseLabel(lakh) { return "₹" + lakh / 100 + "cr"; }
 function purseHintFor(lakh) {
   if (lakh <= 6000) return "Brutal. Every crore is a knife fight.";
-  if (lakh <= 10000) return "The classic IPL purse. Balanced.";
+  if (lakh <= 10000) return "The classic league purse. Balanced.";
   if (lakh <= 20000) return "Comfortable. The rivals will still push you.";
   return "Deep pockets. The max any team can hold is ₹300cr.";
 }
