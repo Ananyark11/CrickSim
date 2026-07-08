@@ -1,6 +1,6 @@
 // CrickSim service worker — offline app shell + runtime asset cache.
 // Bump CACHE when shipping changes so clients pick up the new build.
-const CACHE = "cricksim-v1";
+const CACHE = "cricksim-v2";
 const CORE = [
   "/", "/index.html",
   "/css/style.css", "/css/fonts.css",
