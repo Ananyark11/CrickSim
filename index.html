@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CrickSim — The Perfect IPL Season Auction Game</title>
+<meta name="description" content="Found your franchise. Win the auction against 9 AI rivals. Build your XI from 16 years of IPL legends. Then try the impossible: a perfect 16-0 season.">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127951;</text></svg>">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#05070D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CrickSim">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="ambient" aria-hidden="true">
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+</div>
+
+<!-- ============ FLOATING NAV ============ -->
+<nav class="nav" id="nav">
+  <button class="nav-brand" data-nav="landing">
+    <span class="brand-mark"></span>
+    <span class="brand-word">CrickSim</span>
+  </button>
+  <div class="nav-links">
+    <button class="nav-link" id="installBtn" hidden>Install</button>
+    <button class="nav-link" data-nav="history">Seasons</button>
+  </div>
+</nav>
+
+<main class="stage" id="stage">
+
+<!-- ============ SCREEN: LANDING ============ -->
+<section class="screen active" id="screen-landing">
+  <div class="hero">
+    <div class="hero-wash" aria-hidden="true"></div>
+    <div class="hero-ambient" aria-hidden="true">
+      <span class="flood flood-l"></span>
+      <span class="flood flood-r"></span>
+      <svg class="seam-ring" id="seamRing" viewBox="0 0 500 500" fill="none">
+        <circle cx="250" cy="250" r="212" class="ring-base"/>
+        <circle cx="250" cy="250" r="212" class="ring-seam"/>
+        <circle cx="250" cy="250" r="150" class="ring-inner"/>
+      </svg>
+      <span class="hero-spark s1"></span>
+      <span class="hero-spark s2"></span>
+      <span class="hero-spark s3"></span>
+      <span class="hero-spark s4"></span>
+    </div>
+    <p class="hero-kicker">An auction-table game for people who never got over the IPL</p>
+    <h1 class="hero-h1">Sixteen wins.<br>Zero&nbsp;mercy.</h1>
+    <p class="hero-sub">Found your own franchise. Outbid nine ruthless AI owners for the greatest
+      player-seasons since 2010. Then simulate a full IPL campaign and chase the season
+      no team has ever had — <strong>16&#8209;0</strong>.</p>
+    <div class="hero-ctas">
+      <button class="btn btn-solid btn-xl" data-nav="mode">
+        <span>Play game</span>
+        <span class="btn-orb">&#8599;</span>
+      </button>
+      <button class="btn btn-ghost btn-xl" id="howBtn"><span>How it works</span></button>
+    </div>
+  </div>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track" id="marqueeTrack"></div>
+  </div>
+
+  <section class="strike">
+    <div class="seam-divider" aria-hidden="true"></div>
+    <div class="strike-inner">
+      <div class="strike-copy">
+        <p class="eyebrow">Take strike</p>
+        <h2 class="h2">Middle a few<br>while you think.</h2>
+        <p class="strike-lead">Keeper-cam view of the 22 yards. The bowler runs in and lets one go &mdash;
+          <strong>click the pitch, tap Swing, or hit the spacebar</strong> as the ball reaches you.
+          Time it sweet and it races to the rope.</p>
+        <div class="strike-score">
+          <div><span class="ss-k">Runs</span><span class="ss-v mono" id="gRuns">0</span></div>
+          <div><span class="ss-k">Balls</span><span class="ss-v mono" id="gBalls">0</span></div>
+          <div><span class="ss-k">Best</span><span class="ss-v mono" id="gBest">0</span></div>
+        </div>
+        <p class="strike-feed" id="gFeed">Take guard and face up.</p>
+        <button class="btn btn-solid" id="gStart"><span>Take guard</span><span class="btn-orb">&#9654;</span></button>
+      </div>
+      <div class="strike-stage">
+        <div class="strike-canvas-wrap">
+          <canvas id="pitchGame" width="340" height="460" aria-label="Top-down batting mini-game"></canvas>
+          <div class="strike-pop" id="gPop"></div>
+        </div>
+        <button class="strike-swing" id="gSwing">Swing</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="how" id="how">
+    <div class="seam-divider" aria-hidden="true"></div>
+    <h2 class="h2">One evening.<br>Three acts.</h2>
+    <div class="how-grid">
+      <article class="bez">
+        <div class="bez-core">
+          <span class="how-num">I</span>
+          <h3>The Auction</h3>
+          <p>Fifty player-season lots under the lights — Kohli &rsquo;16 and Kohli &rsquo;24 are different
+            cards with different ratings. Nine AI franchises bid against you, each with its own money,
+            needs and temperament. Your purse: &#8377;50cr to unlimited. Your call.</p>
+        </div>
+      </article>
+      <article class="bez">
+        <div class="bez-core">
+          <span class="how-num">II</span>
+          <h3>The Squad</h3>
+          <p>Fifteen names on your sheet, eleven shirts to fill. Max four overseas. One keeper,
+            real bowling depth, someone for the death overs. The selection screen is where
+            auctions are truly won or lost.</p>
+        </div>
+      </article>
+      <article class="bez">
+        <div class="bez-core">
+          <span class="how-num">III</span>
+          <h3>The Season</h3>
+          <p>Fourteen league games, then the playoffs. The simulation is phase-based and merciless —
+            your weakest link sets your ceiling. A batting paradise with no death bowler
+            does not go 16&#8209;0. Nothing ever has.</p>
+        </div>
+      </article>
+    </div>
+    <div class="how-cta">
+      <button class="btn btn-solid btn-xl" data-nav="setup"><span>Found your franchise</span><span class="btn-orb">&#8599;</span></button>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <p>CrickSim is a fan-made simulation. Player ratings are editorial, era-specific and argued about constantly.</p>
+    <p class="foot-dim">Inspired by 38-0 &middot; Built for the love of the format</p>
+  </footer>
+</section>
+
+<!-- ============ SCREEN: MODE SELECT ============ -->
+<section class="screen" id="screen-mode">
+  <div class="wrap-narrow">
+    <p class="eyebrow">Choose your mode</p>
+    <h2 class="h2">How do you want<br>to play?</h2>
+    <div class="mode-grid">
+      <button class="mode-card bez" id="modeAI"><div class="bez-core">
+        <span class="mode-ico">&#129302;</span>
+        <h3 class="mode-title">Play vs AI</h3>
+        <p class="mode-desc">Found your franchise, win a live auction against nine AI owners, build your XI and chase the perfect 16&#8209;0 season.</p>
+        <span class="mode-go">Create your team &#8594;</span>
+      </div></button>
+      <div class="mode-card bez mode-soon"><div class="bez-core">
+        <span class="mode-badge">Under development</span>
+        <span class="mode-ico">&#128101;</span>
+        <h3 class="mode-title">Play vs a Friend</h3>
+        <p class="mode-desc">Draft against a real opponent, snake-pick your squads and simulate a head-to-head season. Coming soon.</p>
+        <span class="mode-go mode-go-dim">Not available yet</span>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCREEN: SETUP ============ -->
+<section class="screen" id="screen-setup">
+  <div class="wrap-narrow">
+    <p class="eyebrow">Franchise papers</p>
+    <h2 class="h2">Every dynasty starts<br>with a signature.</h2>
+
+    <div class="setup-grid">
+      <div class="setup-form bez"><div class="bez-core">
+        <label class="fld">
+          <span class="fld-label">Franchise name</span>
+          <input type="text" id="teamName" maxlength="26" placeholder="e.g. Kathmandu Yetis" autocomplete="off">
+        </label>
+        <label class="fld">
+          <span class="fld-label">Home city</span>
+          <input type="text" id="teamCity" maxlength="20" placeholder="e.g. Kathmandu" autocomplete="off">
+        </label>
+        <div class="fld">
+          <span class="fld-label">Colours</span>
+          <div class="swatches" id="swatches"></div>
+        </div>
+        <div class="fld">
+          <span class="fld-label">Auction purse</span>
+          <div class="purse-slider">
+            <input type="range" id="purseSlider" min="50" max="300" step="10" value="100" aria-label="Auction purse">
+            <div class="purse-scale"><span>₹50cr</span><span>₹175cr</span><span>₹300cr</span></div>
+          </div>
+          <p class="fld-hint" id="purseHint"></p>
+        </div>
+      </div></div>
+
+      <div class="setup-preview">
+        <div class="badge-card bez"><div class="bez-core badge-core">
+          <div class="badge-crest" id="crestPreview"><span id="crestInitials">??</span></div>
+          <p class="badge-name" id="previewName">Your Franchise</p>
+          <p class="badge-city" id="previewCity">&mdash;</p>
+          <div class="badge-meta">
+            <div><span class="badge-k">Purse</span><span class="badge-v" id="previewPurse">&#8377;100cr</span></div>
+            <div><span class="badge-k">Rivals</span><span class="badge-v">9</span></div>
+            <div><span class="badge-k">Target</span><span class="badge-v">16&#8209;0</span></div>
+          </div>
+        </div></div>
+        <button class="btn btn-solid btn-xl btn-wide" id="startAuctionBtn" disabled>
+          <span>Take your paddle</span><span class="btn-orb">&#8599;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCREEN: AUCTION ============ -->
+<section class="screen" id="screen-auction">
+  <div class="pitch-fx" id="pitchFx" aria-hidden="true"></div>
+
+  <div class="auc-begin" id="aucBegin" hidden>
+    <div class="auc-begin-card bez"><div class="bez-core">
+      <p class="eyebrow" id="aucBeginEyebrow">The room is set</p>
+      <h2 class="h2-sm" id="aucBeginTitle">Ready when you are.</h2>
+      <p class="auc-begin-note" id="aucBeginNote">Nine franchises are seated, the lots are loaded and your purse is counted. The gavel goes up only when you say so.</p>
+      <button class="btn btn-solid btn-xl" id="aucBeginBtn"><span id="aucBeginLabel">Start the auction</span><span class="btn-orb">&#9654;</span></button>
+    </div></div>
+  </div>
+
+  <div class="auction-layout">
+
+    <header class="auc-top">
+      <div class="auc-me">
+        <span class="auc-crest" id="aucCrest">YF</span>
+        <div>
+          <p class="auc-team" id="aucTeamName">Your Franchise</p>
+          <p class="auc-slots"><span id="aucSlots">0</span>/15 signed &middot; <span id="aucOverseas">0</span>/8 overseas</p>
+        </div>
+      </div>
+      <div class="auc-set">
+        <div class="auc-set-nav">
+          <button class="cat-nav" id="prevCatBtn" title="Previous category" aria-label="Previous category">&#8592;</button>
+          <p class="auc-set-label" id="setLabel">Marquee Set</p>
+          <button class="cat-nav" id="nextCatBtn" title="Next category" aria-label="Next category">&#8594;</button>
+        </div>
+        <div class="auc-set-dots" id="setDots"></div>
+      </div>
+      <div class="auc-purse">
+        <p class="auc-purse-label">Purse remaining</p>
+        <p class="auc-purse-val mono" id="aucPurse">&#8377;100.00cr</p>
+      </div>
+    </header>
+
+    <div class="auc-toolbar">
+      <div class="tool-group">
+        <button class="tool-btn" id="pauseBtn" title="Pause / resume"><span class="tool-ico" id="pauseIco">&#10073;&#10073;</span><span id="pauseTxt">Pause</span></button>
+        <button class="tool-btn" id="speedBtn" title="Auction speed"><span class="mono" id="speedTxt">1&times;</span></button>
+        <button class="tool-btn" id="restartBtn" title="Restart with a fresh pool">&#8635; Restart</button>
+      </div>
+      <div class="tool-group">
+        <button class="tool-btn tool-ghost" id="browseSetBtn">View this set</button>
+        <button class="tool-btn tool-accent" id="quickAucBtn">&#9889; Quick auction</button>
+        <button class="tool-btn" id="finishAucBtn" title="End the auction now">&#10003; Finish</button>
+      </div>
+    </div>
+
+    <div class="queue-rail" id="queueRail">
+      <span class="queue-label">Coming up</span>
+      <div class="queue-track" id="queueTrack"></div>
+    </div>
+
+    <div class="auc-main">
+      <div class="auc-stage bez"><div class="bez-core auc-stage-core">
+        <div class="spotlight" aria-hidden="true"></div>
+        <div class="lot" id="lotCard">
+          <div class="lot-head">
+            <span class="lot-role" id="lotRole">OPENER</span>
+            <span class="lot-season mono" id="lotSeason">RCB &middot; 2016</span>
+            <span class="lot-flag" id="lotFlag">IND</span>
+          </div>
+          <h3 class="lot-name" id="lotName">Player Name</h3>
+          <p class="lot-flavor" id="lotFlavor"></p>
+          <p class="lot-stats mono" id="lotStats"></p>
+          <div class="lot-body">
+            <div class="lot-ovr">
+              <span class="lot-ovr-num mono" id="lotOvr">98</span>
+              <span class="lot-ovr-label">Overall</span>
+            </div>
+            <div class="lot-subs" id="lotSubs"></div>
+          </div>
+        </div>
+        <div class="gavel-zone">
+          <div class="bid-now">
+            <p class="bid-label" id="bidLeaderLabel">Base price</p>
+            <p class="bid-val mono" id="bidValue">&#8377;2.00cr</p>
+            <p class="bid-status" id="bidStatus">The room is quiet&hellip;</p>
+          </div>
+          <div class="bid-actions">
+            <div class="bid-stepper">
+              <button class="step-btn" id="bidMinus" aria-label="Lower your raise">&minus;</button>
+              <span class="step-amt mono" id="bidAmt">&#8377;2.20cr</span>
+              <button class="step-btn" id="bidPlus" aria-label="Raise your raise">+</button>
+            </div>
+            <button class="btn btn-solid btn-bid" id="bidBtn"><span>Submit raise</span></button>
+            <button class="btn btn-ghost" id="passBtn"><span>Sit out</span></button>
+          </div>
+        </div>
+        <div class="sold-stamp" id="soldStamp">SOLD</div>
+      </div></div>
+
+      <aside class="auc-side">
+        <div class="rivals" id="rivalsRail"></div>
+        <div class="auc-log bez"><div class="bez-core">
+          <p class="log-title">Auction floor</p>
+          <ul class="log-list" id="logList"></ul>
+        </div></div>
+      </aside>
+    </div>
+
+    <footer class="auc-drawer">
+      <button class="drawer-toggle" id="drawerToggle">Your squad <span class="mono" id="drawerCount">0</span></button>
+      <div class="drawer-body" id="drawerBody"><ul class="drawer-list" id="squadList"></ul></div>
+    </footer>
+  </div>
+</section>
+
+<!-- ============ SCREEN: SQUAD / XI ============ -->
+<section class="screen" id="screen-squad">
+  <div class="wrap-wide">
+    <p class="eyebrow">Team sheet</p>
+    <h2 class="h2">Fifteen names.<br>Eleven shirts.</h2>
+    <div class="squad-tabs" id="squadTabs">
+      <button class="squad-tab active" data-tab="pool">Squad (15)</button>
+      <button class="squad-tab" data-tab="xi">Your XI</button>
+    </div>
+    <div class="squad-grid" id="squadGrid" data-show="pool">
+      <div class="squad-pool bez"><div class="bez-core">
+        <p class="pool-title">Signed at auction <span class="pool-hint">tap a player, then tap a slot<span class="hint-desktop"> — or drag them onto it</span></span></p>
+        <ul class="pool-list" id="poolList"></ul>
+      </div></div>
+      <div class="xi-panel">
+        <div class="xi-slots" id="xiSlots"></div>
+        <div class="xi-checks bez"><div class="bez-core">
+          <p class="pool-title">Selection rules</p>
+          <ul class="check-list" id="checkList"></ul>
+          <div class="phase-bars" id="phaseBars"></div>
+          <button class="btn btn-solid btn-xl btn-wide" id="startSeasonBtn" disabled>
+            <span>Begin the season</span><span class="btn-orb">&#8599;</span>
+          </button>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCREEN: SEASON ============ -->
+<section class="screen" id="screen-season">
+  <div class="wrap-wide">
+    <div class="season-head">
+      <div>
+        <p class="eyebrow" id="seasonPhaseLabel">League stage</p>
+        <h2 class="h2-sm" id="seasonRecord">0&ndash;0</h2>
+      </div>
+      <div class="season-controls">
+        <button class="btn btn-solid" id="nextMatchBtn"><span>Play next match</span></button>
+        <button class="btn btn-ghost" id="simAllBtn"><span>Sim rest of league</span></button>
+      </div>
+    </div>
+    <div class="next-match" id="nextMatchBanner" hidden></div>
+    <div class="season-grid">
+      <div class="matches" id="matchStack"></div>
+      <aside class="table-panel bez"><div class="bez-core">
+        <p class="pool-title">Standings</p>
+        <div class="ptable-scroll"><table class="ptable" id="pointsTable"></table></div>
+      </div></aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCREEN: VERDICT ============ -->
+<section class="screen" id="screen-verdict">
+  <div class="wrap-narrow verdict-wrap">
+    <p class="eyebrow" id="verdictKicker">Season complete</p>
+    <h2 class="verdict-h1" id="verdictTitle">14&ndash;2</h2>
+    <p class="verdict-sub" id="verdictSub"></p>
+    <div class="emoji-strip mono" id="emojiStrip"></div>
+    <div class="review" id="reviewBlock"></div>
+    <div class="awards" id="awardsBlock"></div>
+    <canvas id="shareCanvas" width="1080" height="1350" class="share-canvas"></canvas>
+    <div class="verdict-actions">
+      <button class="btn btn-solid" id="downloadCardBtn"><span>Download season card</span></button>
+      <button class="btn btn-ghost" id="copyEmojiBtn"><span>Copy result</span></button>
+      <button class="btn btn-ghost" data-nav="setup"><span>Run it back</span></button>
+    </div>
+    <div class="verdict-detail bez"><div class="bez-core" id="verdictDetail"></div></div>
+  </div>
+</section>
+
+<!-- ============ SCREEN: HISTORY ============ -->
+<section class="screen" id="screen-history">
+  <div class="wrap-narrow">
+    <p class="eyebrow">The archive</p>
+    <div class="hist-head">
+      <h2 class="h2" style="margin-bottom:0">Seasons past.</h2>
+      <button class="btn btn-ghost" id="clearHistoryBtn" hidden><span>Clear all</span></button>
+    </div>
+    <div id="historyList" class="history-list"></div>
+    <button class="btn btn-solid btn-xl" data-nav="setup"><span>Start a new season</span><span class="btn-orb">&#8599;</span></button>
+  </div>
+</section>
+
+<!-- ============ SCREEN: SCORECARD ============ -->
+<section class="screen" id="screen-scorecard">
+  <div class="wrap-wide">
+    <div class="sc-screen-head">
+      <div>
+        <p class="eyebrow" id="scoreEyebrow">Scorecard</p>
+        <h2 class="h2-sm" id="scoreTitle">Match</h2>
+        <p class="sc-screen-note" id="scoreResult"></p>
+      </div>
+      <button class="btn btn-ghost" id="scoreCloseBtn"><span>&larr; Back to season</span></button>
+    </div>
+    <div id="scorecardBody" class="scorecard-body"></div>
+    <button class="btn btn-solid btn-wide" id="scoreCloseBtn2" style="max-width:22rem;margin:2rem auto 0"><span>Close scorecard</span></button>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ MODAL: CATEGORY BROWSER ============ -->
+<div class="modal" id="setModal" hidden>
+  <div class="modal-scrim" data-close="setModal"></div>
+  <div class="modal-card bez"><div class="bez-core modal-core">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow" style="margin:0">Set list</p>
+        <h3 class="modal-title" id="setModalTitle">Marquee</h3>
+      </div>
+      <button class="modal-x" data-close="setModal" aria-label="Close">&times;</button>
+    </div>
+    <p class="modal-note" id="setModalNote"></p>
+    <ul class="set-list" id="setModalList"></ul>
+  </div></div>
+</div>
+
+<!-- ============ MODAL: QUICK AUCTION ============ -->
+<div class="modal" id="quickModal" hidden>
+  <div class="modal-scrim" data-close="quickModal"></div>
+  <div class="modal-card bez"><div class="bez-core modal-core">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow" style="margin:0">Skip the room</p>
+        <h3 class="modal-title">Quick auction</h3>
+      </div>
+      <button class="modal-x" data-close="quickModal" aria-label="Close">&times;</button>
+    </div>
+    <p class="modal-note">We&rsquo;ll auto-build a balanced fifteen inside your price band, so you don&rsquo;t
+      blow the purse on three names. Set how much you&rsquo;re willing to spend per player.</p>
+    <div class="q-band">
+      <label class="fld">
+        <span class="fld-label">Lowest per player &mdash; <b class="mono" id="qMinVal">&#8377;0.30cr</b></span>
+        <input type="range" id="qMin" min="20" max="2000" step="5" value="30">
+      </label>
+      <label class="fld">
+        <span class="fld-label">Highest per player &mdash; <b class="mono" id="qMaxVal">&#8377;18cr</b></span>
+        <input type="range" id="qMax" min="200" max="15000" step="25" value="2500">
+      </label>
+    </div>
+    <p class="fld-hint" id="qSummary"></p>
+    <button class="btn btn-solid btn-xl btn-wide" id="qBuildBtn"><span>Build my squad</span><span class="btn-orb">&#9889;</span></button>
+  </div></div>
+</div>
+
+<!-- ============ MODAL: SKIP CATEGORY (quick-sim confirm) ============ -->
+<div class="modal" id="skipModal" hidden>
+  <div class="modal-scrim" data-close="skipModal"></div>
+  <div class="modal-card bez"><div class="bez-core modal-core">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow" style="margin:0">Move on</p>
+        <h3 class="modal-title">Skip <span id="skipFromName">this</span>?</h3>
+      </div>
+      <button class="modal-x" data-close="skipModal" aria-label="Close">&times;</button>
+    </div>
+    <p class="modal-note">The rest of the <b id="skipFromName2">current</b> set will be <b>quick-simmed</b> &mdash;
+      its remaining players are auctioned automatically to the AI field. You won&rsquo;t be able to bid on them again;
+      you can only look back at who got whom. Then you choose when to start <b id="skipToName">the next set</b>.</p>
+    <div class="verdict-actions" style="margin:0">
+      <button class="btn btn-solid" id="skipConfirmBtn"><span>Quick-sim &amp; move on</span></button>
+      <button class="btn btn-ghost" data-close="skipModal"><span>Keep bidding</span></button>
+    </div>
+  </div></div>
+</div>
+
+<!-- ============ MODAL: AUCTION FLOOR (finished categories) ============ -->
+<div class="modal" id="floorModal" hidden>
+  <div class="modal-scrim" data-close="floorModal"></div>
+  <div class="modal-card modal-wide bez"><div class="bez-core modal-core">
+    <div class="modal-head">
+      <div>
+        <p class="eyebrow" style="margin:0">Auction floor</p>
+        <h3 class="modal-title">Who got whom</h3>
+      </div>
+      <button class="modal-x" data-close="floorModal" aria-label="Close">&times;</button>
+    </div>
+    <p class="modal-note">Finished categories, read-only. Bidding on these is closed.</p>
+    <div id="floorBody" class="floor-body"></div>
+  </div></div>
+</div>
+
+<script src="js/vendor/gsap.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>
